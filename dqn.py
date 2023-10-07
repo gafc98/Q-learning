@@ -5,7 +5,7 @@ import NN
 
 
 LEARNING_RATE = 0.075
-DISCOUNT_FACTOR = 0.95
+DISCOUNT_FACTOR = 0.99
 EPISODES = 4000
 RENDER_MODE = "human"
 
@@ -53,6 +53,8 @@ for episode in range(1, EPISODES+1):
     X = []
     y = []
 
+    nt_backup = nt
+
     while not done and it < max_iter:
         curr_q = nt.eval(state)
         action = np.argmax(curr_q)
@@ -83,6 +85,9 @@ for episode in range(1, EPISODES+1):
         it += 1
         score += reward
     
+    if not done:
+        nt = nt_backup
+
     print(f"Episode: {episode}\tScore: {score}")
     env.close()
 nt.save_model("params")
