@@ -30,7 +30,7 @@ def discretize_state(state):
 
 
 
-nt = NN.NN_interpolator([30, 25], n_input=2, n_out=3, lr = LEARNING_RATE/EPOCHS)
+nt = NN.NN_interpolator([100], n_input=2, n_out=3, lr = LEARNING_RATE/EPOCHS) # [30, 25] worked well
 nt.set_init_params()
 
 
@@ -61,7 +61,7 @@ for episode in range(1, EPISODES+1):
 
 
         new_q = nt.eval(new_state)
-        if not done:
+        if not done or True:
             q_target = reward + DISCOUNT_FACTOR * np.max(new_q)
         else:
             pass
@@ -85,4 +85,6 @@ for episode in range(1, EPISODES+1):
     
     print(f"Episode: {episode}\tScore: {score}")
     env.close()
+nt.save_model("params")
+
 env.close()
