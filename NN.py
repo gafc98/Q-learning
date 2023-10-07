@@ -29,6 +29,7 @@ class NN_classifier:
             b = set_weights(np.random.rand(self.lrs[i+1],1), -1, 1)
             params.append( (W, b) )
         self.p = params
+        g = grad(lambda p, x, y: self.cost(x, y, p))
         return self
 
     def eval(self, x, p = None):
@@ -62,7 +63,7 @@ class NN_classifier:
             print("Sample number does not match for x and y.")
             return self
         self.N_samples = N_samples_x
-        print(f"There are {N_samples_x} training set samples.")
+        #print(f"There are {N_samples_x} training set samples.")
 
         N_outputs = len(y[0]) if hasattr(y[0], '__len__') else 1
         n_input = len(x[0]) if hasattr(x[0], '__len__') else 1
@@ -89,12 +90,12 @@ class NN_classifier:
         if lr:
             self.lr = lr
 
-        norm = 1.0 / self.N_samples
-        g = grad(lambda p, x, y: self.cost(x, y, p))
+        norm = 1.0 #/ self.N_samples
+        
         for epoch in range(n_epoch):
             c = 0
             for i in np.random.permutation(self.N_samples):
-                dp = g(self.p, x[i], y[i])
+                dp = self.g(self.p, x[i], y[i])
                 
                 l = 0
                 for dW, db in dp:
@@ -106,7 +107,7 @@ class NN_classifier:
                 if y[i][self.get_max_idx(x[i])] == 1:
                     c += 1
             c = c / self.N_samples
-            print(f"Epoch: {epoch}     Accuracy: {round(float(c)*100, 3)}%     LR: {self.lr}")
+            #print(f"Epoch: {epoch}     Accuracy: {round(float(c)*100, 3)}%     LR: {self.lr}")
             self.lr *= decay
         return self
 
@@ -133,22 +134,23 @@ class NN_interpolator(NN_classifier):
 
     def set_init_params(self):
         set_weights = lambda x, low, up: (up - low) * (x - 0.5) + (up + low) * 0.5
-        low = np.min(self.x)
-        high = np.max(self.x)
-        W = set_weights(np.random.rand(self.lrs[1], self.lrs[0]), -1, 1)
+        low = -1.0#np.min(self.x)
+        high = 1.0#np.max(self.x)
+        W = set_weights(np.random.rand(self.lrs[1], self.lrs[0]), low, high)
         b = set_weights(np.random.rand(self.lrs[1],1), low * 0.8, high * 0.8)
         params = [(W, b)]
         for i in range(1, len(self.lrs) - 2):
-            W = set_weights(np.random.rand(self.lrs[i+1], self.lrs[i]), -1, 1)
-            b = set_weights(np.random.rand(self.lrs[i+1],1), -1, 1)
+            W = set_weights(np.random.rand(self.lrs[i+1], self.lrs[i]), low, high)
+            b = set_weights(np.random.rand(self.lrs[i+1],1), low, high)
             params.append( (W, b) )
         i += 1
-        low = np.min(self.y)
-        high = np.max(self.y)
-        W = set_weights(np.random.rand(self.lrs[i+1], self.lrs[i]), -1, 1)
+        low = -1.0#np.min(self.x)
+        high = 1.0#np.max(self.x)
+        W = set_weights(np.random.rand(self.lrs[i+1], self.lrs[i]), low, high)
         b = set_weights(np.random.rand(self.lrs[i+1],1), low, high)
         params.append( (W, b) )
         self.p = params
+        self.g = grad(lambda p, x, y: self.cost(x, y, p))
         return self
 
     def eval(self, x, p = None):
@@ -178,6 +180,7 @@ class NN_interpolator(NN_classifier):
             print("Cost metric not defined.")
         return np.sum(e)
 
+
     def train(self, n_epoch = 1, lr = None, plot_rate = None, decay = 1.0):
         x = self.x
         y = self.y
@@ -186,12 +189,12 @@ class NN_interpolator(NN_classifier):
             lr = self.lr
 
         last_p = 0
-        g = grad(lambda p, x, y: self.cost(x, y, p))
+        
         for epoch in range(n_epoch):
             c = 0.0
             for i in np.random.permutation(self.N_samples):
                 #g = grad(lambda p: self.cost(x[i], y[i], p))
-                dp = g(self.p, x[i], y[i])
+                dp = self.g(self.p, x[i], y[i])
                 
                 norm = 1.0 / (self.N_samples * self.n_output)
 
@@ -210,7 +213,7 @@ class NN_interpolator(NN_classifier):
                 last_p +=1
                 self.plot()
 
-            print(f"Epoch: {epoch}     Cost: {round(float(c), 3)}     LR: {lr}")
+            #print(f"Epoch: {epoch}     Cost: {round(float(c), 3)}     LR: {lr}")
         return self
 
     def plot(self):
