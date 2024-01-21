@@ -2,9 +2,10 @@ import gym
 import numpy as np
 import network
 import NN
+from file_dumper import Dumper
 
 
-LEARNING_RATE = 0.075
+LEARNING_RATE = 0.05
 DISCOUNT_FACTOR = 0.99
 EPISODES = 4000
 RENDER_MODE = "human"
@@ -13,7 +14,7 @@ EPOCHS = 5
 
 MINIBATCH = 20
 
-SHOW_EVERY = 20
+SHOW_EVERY = 30
 
 env = gym.make("MountainCar-v0", render_mode = None)
 env.reset()
@@ -34,10 +35,14 @@ nt = NN.NN_interpolator([100], n_input=2, n_out=3, lr = LEARNING_RATE/EPOCHS) # 
 nt.set_init_params()
 
 
+dumper = Dumper('Data.txt')
+
+
 for episode in range(1, EPISODES+1):
     render = False
     if episode % SHOW_EVERY == 0:
         render_mode = RENDER_MODE
+        #nt.lr *= 0.8
     else:
         render_mode = None
 
@@ -89,6 +94,7 @@ for episode in range(1, EPISODES+1):
         nt = nt_backup
 
     print(f"Episode: {episode}\tScore: {score}")
+    dumper.dump(score)
     env.close()
 nt.save_model("params")
 

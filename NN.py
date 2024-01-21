@@ -139,12 +139,12 @@ class NN_interpolator(NN_classifier):
         W = set_weights(np.random.rand(self.lrs[1], self.lrs[0]), low, high)
         b = set_weights(np.random.rand(self.lrs[1],1), low * 0.8, high * 0.8)
         params = [(W, b)]
+        i = 0
         for i in range(1, len(self.lrs) - 2):
             W = set_weights(np.random.rand(self.lrs[i+1], self.lrs[i]), low, high)
             b = set_weights(np.random.rand(self.lrs[i+1],1), low, high)
             params.append( (W, b) )
-        else:
-            i = 0 # in case there are no conected hidden layers
+
         i += 1
         low = -1.0#np.min(self.x)
         high = 1.0#np.max(self.x)
